@@ -27,7 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['testerally-be.onrender.com',
                  'testerally-be-1.onrender.com',
-                 'http://127.0.0.1']
+                 'http://127.0.0.1',
+                 '*']
 
 
 # Application definition
