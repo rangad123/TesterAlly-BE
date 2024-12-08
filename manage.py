@@ -3,10 +3,13 @@
 import os
 import sys
 
-
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+    # Set the default port to 8000 for Render or use environment variable
+    port = os.environ.get('PORT', 8000)  # Render will provide the PORT variable
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -15,8 +18,11 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
-    execute_from_command_line(sys.argv)
+    
+    # Start the Django development server bound to 0.0.0.0 and port 8000
+    os.system(f"python manage.py runserver 0.0.0.0:{port}")
 
+    execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':
     main()
