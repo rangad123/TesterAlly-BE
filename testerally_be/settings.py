@@ -84,7 +84,11 @@ TEMPLATES = [
     },
 ]
 
+ASGI_APPLICATION = 'testerally_be.asgi.application'
+
+
 WSGI_APPLICATION = 'testerally_be.wsgi.application'
+
 
 
 # Database
