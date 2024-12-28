@@ -8,8 +8,12 @@ python manage.py migrate
 
 # Create a superuser with a username, email, and password
 python <<EOF
+import os
 import django
 from django.contrib.auth.models import User
+
+os.environ['DJANGO_SETTINGS_MODULE'] = 'testerally_be.settings'
+django.setup()
 
 username = "admin"
 email = "admin@example.com"
