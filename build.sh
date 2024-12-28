@@ -8,6 +8,7 @@ python manage.py migrate
 
 # Create a superuser with a username, email, and password
 python <<EOF
+import django
 from django.contrib.auth.models import User
 
 username = "admin"
