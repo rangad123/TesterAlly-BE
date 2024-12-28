@@ -15,14 +15,18 @@ import os
 import django
 from django.contrib.auth.models import User
 
-# Setup Django settings
+# Set the Django settings module
 os.environ['DJANGO_SETTINGS_MODULE'] = 'testerally_be.settings'
+
+# Setup Django
 django.setup()
 
+# Superuser credentials
 username = 'admin'
 email = 'admin@example.com'
-password = 'admin1234'
+password = 'admin'
 
+# Check if the superuser already exists, if not, create it
 if not User.objects.filter(username=username).exists():
     User.objects.create_superuser(username=username, email=email, password=password)
     print(f'Superuser {username} with email {email} created successfully.')
