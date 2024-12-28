@@ -2,24 +2,31 @@
 # exit on error
 set -o errexit
 
-# Set the Django settings module
+# Set the Django settings module before importing Django
 export DJANGO_SETTINGS_MODULE="testerally_be.settings"
 
+# Ensure that the virtual environment is activated
+source .venv/bin/activate
+
+# Install dependencies from requirements.txt
 pip install -r requirements.txt
 
+# Run migrations
 python manage.py migrate
 
-# Create a superuser with a username, email, and password
+# Create superuser programmatically with predefined credentials
 python -c "
 import os
 import django
-from django.contrib.auth.models import User
 
-# Set the Django settings module
+# Set the DJANGO_SETTINGS_MODULE environment variable
 os.environ['DJANGO_SETTINGS_MODULE'] = 'testerally_be.settings'
 
 # Setup Django
 django.setup()
+
+# Import User model after setup
+from django.contrib.auth.models import User
 
 # Superuser credentials
 username = 'admin'
