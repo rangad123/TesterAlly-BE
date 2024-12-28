@@ -1,37 +1,22 @@
-#!/bin/bash
-
 # Stop the script if any command fails
-set -e
+$ErrorActionPreference = "Stop"
 
 # Print the current directory to confirm location
-echo "Current Directory: $(pwd)"
+
 
 # Install dependencies from requirements.txt
-echo "Installing dependencies..."
+
 pip install -r requirements.txt
 
 # Run database migrations to apply schema changes
-echo "Applying database migrations..."
+
 python manage.py migrate
 
 # Collect static files for production
-echo "Collecting static files..."
+
 python manage.py collectstatic --noinput
 
-# Create a superuser programmatically
-echo "Creating superuser..."
-python <<EOF
-from django.contrib.auth.models import User
+# Optionally, create a superuser if you need to (uncomment if needed)
+python manage.py createsuperuser --noinput
 
-username = "admin"
-email = "admin@example.com"
-password = "admin1234"
 
-if not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username=username, email=email, password=password)
-    print(f"Superuser '{username}' created successfully.")
-else:
-    print(f"Superuser '{username}' already exists.")
-EOF
-
-echo "Deployment build complete!"
