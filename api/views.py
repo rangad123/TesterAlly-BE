@@ -87,7 +87,7 @@ class ForgotPasswordView(APIView):
             user.save()
 
             current_site = get_current_site(request)
-            reset_link = f"https://tester-ally-fe.vercel.app/resetPassword/{token}"
+            reset_link = f"https://testerally-fe.onrender.com/resetPassword/{token}"
 
             send_mail(
                 'Password Reset Request',
