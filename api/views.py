@@ -51,7 +51,6 @@ class LoginView(APIView):
         try:
             user = User.objects.get(email=data['email'])
             if check_password(data['password'], user.password):
-                
                 refresh = RefreshToken.for_user(user)
                 return Response(
                     {
@@ -59,6 +58,10 @@ class LoginView(APIView):
                         "message": "Login successful!",
                         "access": str(refresh.access_token),
                         "refresh": str(refresh),
+                        "user": {
+                            "name": user.name,
+                            "email": user.email
+                        }
                     },
                     status=status.HTTP_200_OK
                 )
