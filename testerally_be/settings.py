@@ -18,6 +18,8 @@ ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,
 
 # Application definition
 INSTALLED_APPS = [
+    "unfold",
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
