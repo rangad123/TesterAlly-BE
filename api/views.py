@@ -154,18 +154,13 @@ class ProtectedView(APIView):
 
 
 class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
-    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
-
-    def get_queryset(self):
-        # Only return projects that belong to the currently authenticated user
-        return Project.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # Ensures the project is associated with the logged-in user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)  # Save the project with the logged-in user as the owner
+        self.perform_create(serializer)
         return Response(
             {
                 "success": True,
@@ -177,18 +172,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
     
 
 class TestCaseViewSet(viewsets.ModelViewSet):
+    queryset = TestCase.objects.all()
     serializer_class = TestCaseSerializer
-    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
-
-    def get_queryset(self):
-        # Only return test cases that belong to the currently authenticated user
-        return TestCase.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # Ensures the test case is associated with the logged-in user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)  # Save the test case with the logged-in user as the owner
+        self.perform_create(serializer)
         return Response(
             {
                 "success": True,
@@ -199,18 +189,13 @@ class TestCaseViewSet(viewsets.ModelViewSet):
         )
 
 class TestSuiteViewSet(viewsets.ModelViewSet):
+    queryset = TestSuite.objects.all()
     serializer_class = TestSuiteSerializer
-    permission_classes = [IsAuthenticated]  # Ensures only authenticated users can access
-
-    def get_queryset(self):
-        # Only return test suites that belong to the currently authenticated user
-        return TestSuite.objects.filter(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # Ensures the test suite is associated with the logged-in user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user)  # Save the test suite with the logged-in user as the owner
+        self.perform_create(serializer)
         return Response(
             {
                 "success": True,
@@ -219,3 +204,4 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+
