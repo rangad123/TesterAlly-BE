@@ -1,10 +1,13 @@
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
+from .models import Project, TestCase, TestSuite
+from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
 
@@ -147,4 +150,57 @@ class ProtectedView(APIView):
         return Response(
             {"success": True, "message": "You have access to this protected view!"},
             status=status.HTTP_200_OK
+        )
+
+
+class ProjectViewSet(viewsets.ModelViewSet):
+    queryset = Project.objects.all()
+    serializer_class = ProjectSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            {
+                "success": True,
+                "message": "Project created successfully!",
+                "project": serializer.data,
+            },
+            status=status.HTTP_201_CREATED
+        )
+    
+
+class TestCaseViewSet(viewsets.ModelViewSet):
+    queryset = TestCase.objects.all()
+    serializer_class = TestCaseSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            {
+                "success": True,
+                "message": "Test case created successfully!",
+                "test_case": serializer.data,
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+class TestSuiteViewSet(viewsets.ModelViewSet):
+    queryset = TestSuite.objects.all()
+    serializer_class = TestSuiteSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(
+            {
+                "success": True,
+                "message": "Test suite created successfully!",
+                "test_suite": serializer.data,
+            },
+            status=status.HTTP_201_CREATED
         )
