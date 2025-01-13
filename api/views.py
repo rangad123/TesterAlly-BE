@@ -152,7 +152,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Filter projects by the logged-in user's ID
-        user_id = self.request.data.get('user_id')
+        user_id = self.request.query_params.get('user_id')  # Use query_params for GET requests
+
+        if not user_id:
+            raise ValidationError("User Id is required in query parameters.")
+            
         return Project.objects.filter(user_id=user_id)
 
     def perform_create(self, serializer):
@@ -184,7 +188,11 @@ class TestCaseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_id = self.request.user.id  # Get the user ID from the authenticated user
-        project_id = self.request.data.get('project_id')  # Get the project ID from the query parameters
+        project_id = self.request.query_params.get('project_id')  # Use query parameters for GET
+
+        if not project_id:
+            raise ValidationError("Project ID is required in query parameters.")
+
         return TestCase.objects.filter(project__id=project_id)
 
     def perform_create(self, serializer):
@@ -213,7 +221,11 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user_id = self.request.user.id  # Get the user ID from the authenticated user
-        project_id = self.request.data.get('project_id')  # Get the project ID from the query parameters
+        project_id = self.request.query_params.get('project_id')  # Use query parameters for GET
+
+        if not project_id:
+            raise ValidationError("Project ID is required in query parameters.")
+
         return TestSuite.objects.filter(project__id=project_id)
 
     def perform_create(self, serializer):
