@@ -7,8 +7,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
-from .models import Project, TestCase, TestSuite
-from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer
+from .models import Project, TestCase, TestSuite, Requirement
+from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
 
@@ -242,6 +242,48 @@ class TestSuiteViewSet(viewsets.ModelViewSet):
         serializer.save(project=project)
 
     def _get_project_for_user(self, project_id):
+        try:
+            project = Project.objects.get(id=project_id)
+            return project
+        except Project.DoesNotExist:
+            raise ValidationError("Project not found or does not belong to the user.")
+
+
+class RequirementViewSet(viewsets.ModelViewSet):
+    serializer_class = RequirementSerializer
+
+    def get_queryset(self):
+        # Filter requirements by the logged-in user's projects
+        user_id = self.request.user.id
+        project_id = self.request.query_params.get('project_id')  # Use query parameters for GET
+
+        if not project_id:
+            raise ValidationError("Project ID is required in query parameters.")
+
+        return Requirement.objects.filter(project__id=project_id)
+
+    def perform_create(self, serializer):
+        user_id = self.request.user.id
+        project_id = self.request.data.get('project_id')
+
+        if not project_id:
+            raise ValidationError("Project ID is required.")
+        
+        # Use the helper method to ensure the project is valid for the user
+        project = self._get_project_for_user(project_id)
+
+        start_date = self.request.data.get('start_date')
+        completion_date = self.request.data.get('completion_date')
+
+        # Validate that completion date is after start date
+        if start_date and completion_date and start_date > completion_date:
+            raise ValidationError("Completion date must be after start date.")
+
+        # Save the requirement with the correct project
+        serializer.save(project=project)
+
+    def _get_project_for_user(self, project_id):
+        """Helper method to validate and fetch the project linked to the user."""
         try:
             project = Project.objects.get(id=project_id)
             return project
