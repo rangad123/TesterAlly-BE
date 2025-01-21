@@ -49,7 +49,8 @@ class TestSuite(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     pre_requisite = models.TextField(null=True, blank=True)
-    labels = models.CharField(max_length=255, null=True, blank=True, default='[]')
+    labels = models.JSONField(null=True, blank=True, default=list)  # Use JSONField to store lists
+
 
     def __str__(self):
         return self.title
