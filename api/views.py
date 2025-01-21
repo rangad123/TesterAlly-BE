@@ -11,7 +11,6 @@ from .models import Project, TestCase, TestSuite, Requirement
 from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
-
 from .models import User
 from .serializers import UserSerializer
 
@@ -145,7 +144,48 @@ class ResetPasswordView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+#Admin View api for Frontend
 
+class UserListView(APIView):
+
+    def get(self, request):
+        # Fetch all users from the database
+        users = User.objects.all()
+        
+        # Serialize the data
+        serializer = UserSerializer(users, many=True)
+        
+        # Return the serialized data as a response
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProjectListView(APIView):
+    def get(self,request):
+        projects = Project.objects.all()
+        serializer = ProjectSerializer(projects,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class TestCaseListView(APIView):
+    def get (self,request):
+        testcases = TestCase.objects.all()
+        serializer = TestCaseSerializer(testcases,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class TestSuiteListView(APIView):
+    def get(self,request):
+        test_suites = TestSuite.objects.all()
+        serializer = TestSuiteSerializer(test_suites,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+class RequirementListView(APIView):
+    def get(self,request):
+        requirements = Requirement.objects.all()
+        serializer = RequirementSerializer(requirements,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+
+
+
+#User Main api for Frontend
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
