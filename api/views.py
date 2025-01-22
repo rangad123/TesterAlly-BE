@@ -70,7 +70,7 @@ class RegisterView(APIView):
             email=data['email'],
             password=hashed_password,
             phone=data['phone'],
-            country=data['country']
+            country=data['country'],
             role_id=data['roleid']
         )
 
