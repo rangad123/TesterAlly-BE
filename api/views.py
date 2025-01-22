@@ -8,6 +8,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from .models import Project, TestCase, TestSuite, Requirement
+from .models import TestCaseType, TestCasePriority, RequirementType
+from .serializers import TestCaseTypeSerializer, TestCasePrioritySerializer, RequirementTypeSerializer
 from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer, RoleSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
@@ -274,6 +276,8 @@ class TestCaseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user_id = self.request.user.id
         project_id = self.request.data.get('project_id')
+        testcase_type = self.request.data.get('testcase_type', 'Functional')  # Default to 'Functional'
+        testcase_priority = self.request.data.get('testcase_priority', 'Medium')  # Default to 'Medium'
 
         if not project_id:
             raise ValidationError("Project ID is required.")
@@ -282,7 +286,7 @@ class TestCaseViewSet(viewsets.ModelViewSet):
         project = self._get_project_for_user(project_id)
 
         # Save the test case with the correct project and user
-        serializer.save(project=project)
+        serializer.save(project=project, testcase_type=testcase_type, testcase_priority=testcase_priority)
 
     def _get_project_for_user(self, project_id):
         try:
@@ -366,7 +370,18 @@ class RequirementViewSet(viewsets.ModelViewSet):
         except Project.DoesNotExist:
             raise ValidationError("Project not found or does not belong to the user.")
 
+#Database types table view
+class TestCaseTypeViewSet(viewsets.ModelViewSet):
+    queryset = TestCaseType.objects.all()
+    serializer_class = TestCaseTypeSerializer
 
+class TestCasePriorityViewSet(viewsets.ModelViewSet):
+    queryset = TestCasePriority.objects.all()
+    serializer_class = TestCasePrioritySerializer
+
+class RequirementTypeViewSet(viewsets.ModelViewSet):
+    queryset = RequirementType.objects.all()
+    serializer_class = RequirementTypeSerializer
 
 # Protected View for authenticated users
 class ProtectedView(APIView):

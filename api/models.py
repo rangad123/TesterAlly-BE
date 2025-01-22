@@ -46,9 +46,23 @@ class Project(models.Model):
         return self.name
 
 class TestCase(models.Model):
+    TYPE_CHOICES = [
+        ('Functional', 'Functional'),
+        ('Non-Functional', 'Non-Functional'),
+        ('Regression', 'Regression'),
+        ('Integration', 'Integration'),
+    ]
+    PRIORITY_CHOICES = [
+        ('High', 'High'),
+        ('Medium', 'Medium'),
+        ('Low', 'Low'),
+    ]
+
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='test_cases',null=False, blank=False)
     name = models.CharField(max_length=255)
     url = models.URLField()
+    testcase_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='Functional')  # New field
+    testcase_priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='Medium')  # New field
 
     def __str__(self):
         return self.name
@@ -59,6 +73,7 @@ class TestSuite(models.Model):
     description = models.TextField(null=True, blank=True)
     pre_requisite = models.TextField(null=True, blank=True)
     labels = models.JSONField(null=True, blank=True, default=list)  # Use JSONField to store lists
+    testcase = models.JSONField(null=True, blank=True, default=list)  # Field to store single or multiple test cases
 
 
     def __str__(self):
@@ -75,3 +90,26 @@ class Requirement(models.Model):
 
     def __str__(self):
         return self.title 
+
+# Database Types Tables
+
+class TestCaseType(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class TestCasePriority(models.Model):
+    priority_level = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.priority_level
+
+class RequirementType(models.Model):
+    type_name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.type_name
