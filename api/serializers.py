@@ -32,7 +32,7 @@ class TestSuiteSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = TestSuite
-        fields = ['id', 'title', 'description', 'pre_requisite', 'labels', 'project_id', 'testcases']
+        fields = ['id', 'title', 'description', 'pre_requisite', 'labels', 'project_id', 'testcase']
 
 class RequirementSerializer(serializers.ModelSerializer):
     class Meta:
