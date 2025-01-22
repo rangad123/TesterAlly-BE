@@ -83,7 +83,7 @@ class Requirement(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="requirements")
     title = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
-    type = models.CharField(max_length=50, choices=[('Functional', 'Functional'), ('Non-Functional', 'Non-Functional'), ('Regression', 'Regression')])
+    type = models.CharField(max_length=250)
     start_date = models.DateField()
     completion_date = models.DateField()
     labels = models.PositiveIntegerField(null=True, blank=True)
