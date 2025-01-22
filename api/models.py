@@ -1,6 +1,14 @@
 from django.db import models
 from django.conf import settings
 
+# Role model
+class Role(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # Role name (e.g., Admin, User, Manager)
+    description = models.TextField(null=True, blank=True)  # Optional description of the role
+
+    def __str__(self):
+        return self.name
+
 # Models.py
 class User(models.Model):
     name = models.CharField(max_length=100)
@@ -10,6 +18,7 @@ class User(models.Model):
     country = models.CharField(max_length=50)
     reset_token = models.CharField(max_length=100, blank=True, null=True)
     created_by = models.CharField(max_length=10, unique=True, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')  # Foreign key to Role
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

@@ -8,12 +8,46 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from .models import Project, TestCase, TestSuite, Requirement
-from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer
+from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer, RoleSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
-from .models import User
+from .models import User, Role
 from .serializers import UserSerializer
 
+
+class RoleView(APIView):
+    def get(self, request):
+        """
+        Retrieve all roles.
+        """
+        roles = Role.objects.all()
+        serializer = RoleSerializer(roles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        """
+        Create a new role.
+        Restrict creation to the predefined roles.
+        """
+        predefined_roles = {1: "Admin", 2: "Organization", 3: "Project Member"}
+        role_id = request.data.get("id")
+        role_name = request.data.get("name")
+
+        # Check if the role ID is within the predefined range
+        if role_id not in predefined_roles:
+            return Response({"error": "Invalid role ID. Allowed IDs are 1, 2, and 3."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if the role name matches the predefined role for the given ID
+        if predefined_roles[role_id] != role_name:
+            return Response({"error": f"Role name must be '{predefined_roles[role_id]}' for ID {role_id}."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create or get the role
+        role, created = Role.objects.get_or_create(id=role_id, defaults={"name": role_name})
+        if not created:
+            return Response({"message": "Role already exists."}, status=status.HTTP_200_OK)
+
+        serializer = RoleSerializer(role)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 #Register Api
 class RegisterView(APIView):
@@ -37,6 +71,7 @@ class RegisterView(APIView):
             password=hashed_password,
             phone=data['phone'],
             country=data['country']
+            role_id=data['roleid']
         )
 
         serializer = UserSerializer(user)
@@ -63,6 +98,7 @@ class LoginView(APIView):
                         "refresh": str(refresh),
                         "user": {
                             "id":user.id,
+                            "roleId":user.role_id,
                             "name": user.name,
                             "email": user.email
                         }

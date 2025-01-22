@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework.routers import DefaultRouter
 from .views import ProjectViewSet,TestCaseViewSet,TestSuiteViewSet,RequirementViewSet
 from .views import RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
-from .views import UserListView, ProjectListView, TestCaseListView, TestSuiteListView, RequirementListView
+from .views import UserListView, ProjectListView, TestCaseListView, TestSuiteListView, RequirementListView, RoleView
 
 # Router for viewsets
 router = DefaultRouter()
@@ -21,6 +21,7 @@ urlpatterns = [
     path('admin/testcases/', TestCaseListView.as_view(), name='testcase-list'),
     path('admin/testsuites/', TestSuiteListView.as_view(), name='testsuite-list'),
     path('admin/requirements/', RequirementListView.as_view(), name='requirement-list'),
+    path('admin/roles/', RoleView.as_view(), name='role-management'),
 
 ]
 

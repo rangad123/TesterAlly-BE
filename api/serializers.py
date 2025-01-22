@@ -1,11 +1,16 @@
 from rest_framework import serializers
-from .models import User, Project, TestCase, TestSuite,Requirement
+from .models import User, Project, TestCase, TestSuite,Requirement,Role
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'name', 'email', 'password', 'phone', 'country', 'created_by']
         extra_kwargs = {'password': {'write_only': True}}
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'name', 'description']
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
