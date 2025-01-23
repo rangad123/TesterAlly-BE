@@ -32,7 +32,7 @@ class ProjectMemberSerializer(serializers.ModelSerializer):
 class TestCaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestCase
-        fields = ['id', 'name', 'url', 'project_id', 'testcase_type', 'testcase_priority']
+        fields = ['id', 'name', 'project_id', 'testcase_type', 'testcase_priority']
 
 class TestSuiteSerializer(serializers.ModelSerializer):
     labels = serializers.ListField(

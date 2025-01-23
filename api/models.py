@@ -47,23 +47,10 @@ class Project(models.Model):
         return self.name
 
 class TestCase(models.Model):
-    TYPE_CHOICES = [
-        ('Functional', 'Functional'),
-        ('Non-Functional', 'Non-Functional'),
-        ('Regression', 'Regression'),
-        ('Integration', 'Integration'),
-    ]
-    PRIORITY_CHOICES = [
-        ('High', 'High'),
-        ('Medium', 'Medium'),
-        ('Low', 'Low'),
-    ]
-
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='test_cases',null=False, blank=False)
     name = models.CharField(max_length=255)
-    url = models.URLField()
-    testcase_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='Functional')  # New field
-    testcase_priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='Medium')  # New field
+    testcase_type = models.CharField(max_length=50, default='Functional')  # New field
+    testcase_priority = models.CharField(max_length=50, default='Medium')  # New field
 
     def __str__(self):
         return self.name
