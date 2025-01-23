@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Project, TestCase, TestSuite,Requirement,Role
+from .models import User, Project, TestCase, TestSuite,Requirement,Role,ProjectInvitation,ProjectMember
 from .models import TestCaseType, TestCasePriority, RequirementType
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,6 +17,17 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'project_id', 'name', 'description', 'project_type','user_id']
+
+class ProjectInvitationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectInvitation
+        fields = ['id', 'project', 'invite_by', 'recipient_email', 'token', 'status', 'created_at']
+
+
+class ProjectMemberSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectMember
+        fields = ['id', 'project', 'user', 'added_at']
 
 class TestCaseSerializer(serializers.ModelSerializer):
     class Meta:

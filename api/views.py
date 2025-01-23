@@ -9,11 +9,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
 from .models import Project, TestCase, TestSuite, Requirement
 from .models import TestCaseType, TestCasePriority, RequirementType
-from .serializers import TestCaseTypeSerializer, TestCasePrioritySerializer, RequirementTypeSerializer
+from .serializers import TestCaseTypeSerializer, TestCasePrioritySerializer, RequirementTypeSerializer, ProjectInvitationSerializer, ProjectMemberSerializer
 from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer, RoleSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
-from .models import User, Role
+import secrets
+from .models import User, Role, ProjectInvitation, ProjectMember
 from .serializers import UserSerializer
 
 
@@ -369,6 +370,104 @@ class RequirementViewSet(viewsets.ModelViewSet):
             return project
         except Project.DoesNotExist:
             raise ValidationError("Project not found or does not belong to the user.")
+
+
+# Project Member,invitation api views
+class SendInvitationView(APIView):
+    def post(self, request):
+        data = request.data
+        
+
+        # Validate project
+        try:
+            project = Project.objects.get(id=data['project_id'])
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found or you are not the owner."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            sender = User.objects.get(id=data['user_id'])
+        except User.DoesNotExist:
+            return Response({"error": "Sender user not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+
+        # Check if recipient email is valid
+        if not data.get('recipient_email'):
+            return Response({"error": "Recipient email is required."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if the email exists in the User table
+        if User.objects.filter(email=data['recipient_email']).exists():
+            return Response({"error": "User already registered with this email."}, status=status.HTTP_400_BAD_REQUEST)
+
+         # Generate a short token for invitation
+        token = secrets.token_hex(8)  # Generates a 16-character token     
+
+        # Create invitation
+        invitation = ProjectInvitation.objects.create(
+            project=project,
+            invite_by=sender,
+            recipient_email=data['recipient_email'],
+            token=token
+        )
+
+        # Send email with invitation link
+        invite_link = f"https://testerally-fe.onrender.com/accept-invite/{invitation.token}"
+        send_mail(
+            subject="Project Invitation",
+            message=f"You've been invited to join the project '{project.name}'. Click the link to accept: {invite_link}",
+            from_email='suriya.prakash@crowd4test.com',
+            recipient_list=[data['recipient_email']]
+        )
+
+        return Response({"message": "Invitation sent successfully!"}, status=status.HTTP_201_CREATED)
+
+
+class AcceptInvitationView(APIView):
+    def post(self, request, token):
+        # Validate token
+        try:
+            invitation = ProjectInvitation.objects.get(token=token, status="Pending")
+        except ProjectInvitation.DoesNotExist:
+            return Response({"error": "Invalid or expired token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if user already exists
+        data = request.data
+        try:
+            # Try to get the user by the recipient's email
+            user = User.objects.get(email=invitation.recipient_email)
+            # If user exists, return a message
+            return Response(
+                {"error": "User already exists with this email."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except User.DoesNotExist:
+            # If user does not exist, create a new user
+            role = data.get('roleid')  # Assuming roleid is passed in the request data
+            if not role:
+                return Response(
+                    {"error": "Role ID is required."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            user = User.objects.create(
+                name=data['name'],
+                email=invitation.recipient_email,
+                password=make_password(data['password']),
+                phone=data.get('phone', ''),
+                country=data.get('country', ''),
+                role_id=role  # Create user with the given roleid
+            )
+
+        # Add user to project members
+        ProjectMember.objects.create(
+            project=invitation.project,
+            user=user
+        )
+
+        # Update invitation status
+        invitation.status = "Accepted"
+        invitation.save()
+
+        return Response({"message": "Invitation accepted and user registered!"}, status=status.HTTP_201_CREATED)
 
 #Database types table view
 class TestCaseTypeViewSet(viewsets.ModelViewSet):
