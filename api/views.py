@@ -449,7 +449,7 @@ class SendInvitationView(APIView):
         )
 
         # Send email with invitation link
-        invite_link = f"https://testerally-fe.onrender.com/accept-invite/{invitation.token}"
+        invite_link = f"https://testerally-fe.onrender.com/member-register/{invitation.token}"
         send_mail(
             subject="Project Invitation",
             message=f"You've been invited to join the project '{project.name}'. Click the link to accept: {invite_link}",
