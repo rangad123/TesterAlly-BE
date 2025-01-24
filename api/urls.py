@@ -4,6 +4,7 @@ from .views import ProjectViewSet,TestCaseViewSet,TestSuiteViewSet,RequirementVi
 from .views import RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
 from .views import TestCaseTypeViewSet, TestCasePriorityViewSet, RequirementTypeViewSet, SendInvitationView, AcceptInvitationView
 from .views import UserListView, ProjectListView, TestCaseListView, TestSuiteListView, RequirementListView, RoleView
+from .views import OrganizationView, OrganizationProjectsView, ProjectMembersView
 
 # Router for viewsets
 router = DefaultRouter()
@@ -28,6 +29,9 @@ urlpatterns = [
     path('admin/roles/', RoleView.as_view(), name='role-management'),
     path('send-invite/', SendInvitationView.as_view(), name='send_invite'),  # URL for sending invitation
     path('accept-invite/<str:token>/', AcceptInvitationView.as_view(), name='accept_invite'),  # URL for accepting the invitation
+    path('organizations/', OrganizationView.as_view(), name='organization-list'),
+    path('organizations/<int:organization_id>/projects/', OrganizationProjectsView.as_view(), name='organization-projects'),
+    path('projects/<int:project_id>/members/', ProjectMembersView.as_view(), name='project-members'),
 
 ]
 

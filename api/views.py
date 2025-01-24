@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework import viewsets
 from rest_framework import status
+from django.db.models import Prefetch
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.mail import send_mail
@@ -222,7 +223,45 @@ class RequirementListView(APIView):
         serializer = RequirementSerializer(requirements,many=True)
         return Response(serializer.data,status=status.HTTP_200_OK)
 
+#Admin Dashboard view for frontend
+class OrganizationView(APIView):
+    def get(self, request):
+        # Fetch users with `role_id = 2` (Organizations)
+        organizations = User.objects.filter(role_id=2)
+        serializer = UserSerializer(organizations, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+
+class OrganizationProjectsView(APIView):
+    def get(self, request, organization_id):
+        # Fetch projects for the given organization (organization_id matches User.id)
+        try:
+            projects = Project.objects.filter(user_id=organization_id)
+            serializer = ProjectSerializer(projects, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"error": "Organization not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class ProjectMembersView(APIView):
+    def get(self, request, project_id):
+        # Fetch project members for the given project ID
+        try:
+            project_members = ProjectMember.objects.filter(project_id=project_id).select_related('user')
+            members_data = []
+            for member in project_members:
+                user = member.user
+                members_data.append({
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "phone": user.phone,
+                    "country": user.country,
+                    "added_at": member.added_at,
+                })
+            return Response(members_data, status=status.HTTP_200_OK)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
 
 #User Main api for Frontend
 
@@ -454,7 +493,7 @@ class AcceptInvitationView(APIView):
                 password=make_password(data['password']),
                 phone=data.get('phone', ''),
                 country=data.get('country', ''),
-                role_id=role  # Create user with the given roleid
+                role_id=data['roleid']  # Create user with the given roleid
             )
 
         # Add user to project members
