@@ -333,7 +333,8 @@ class TestDataView(APIView):
         test_data, created = TestData.objects.get_or_create(project=project)
 
         # Update or set the URL
-        serializer = TestDataSerializer(test_data, data=request.data)
+        serializer = TestDataSerializer(test_data, data=request.data, partial=True)
+        
         if serializer.is_valid():
             serializer.save()
             status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
