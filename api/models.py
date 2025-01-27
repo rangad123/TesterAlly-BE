@@ -55,6 +55,25 @@ class TestCase(models.Model):
     def __str__(self):
         return self.name
 
+class TestStep(models.Model):
+    testcase = models.ForeignKey(TestCase, related_name='steps', on_delete=models.CASCADE)
+    step_number = models.PositiveIntegerField()  # Ensure order of steps
+    step_description = models.TextField()
+
+    class Meta:
+        unique_together = ('testcase', 'step_number')  # Ensure unique step numbers per test case
+        ordering = ['step_number']  # Automatically order steps by their number
+
+    def __str__(self):
+        return f"Step {self.step_number} for {self.testcase.name}"
+
+class TestData(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='test_links',null=False, blank=False)
+    url = models.URLField()
+
+    def __str__(self):
+        return f"{self.project.name} - {self.url}"
+
 class TestSuite(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='test_suites',null=False, blank=False)
     title = models.CharField(max_length=255)

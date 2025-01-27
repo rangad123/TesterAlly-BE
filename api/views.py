@@ -7,11 +7,12 @@ from rest_framework import status
 from django.db.models import Prefetch
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action
 from django.core.mail import send_mail
-from .models import Project, TestCase, TestSuite, Requirement
+from .models import Project, TestCase, TestSuite, Requirement, TestData, TestStep
 from .models import TestCaseType, TestCasePriority, RequirementType
 from .serializers import TestCaseTypeSerializer, TestCasePrioritySerializer, RequirementTypeSerializer, ProjectInvitationSerializer, ProjectMemberSerializer
-from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer, RoleSerializer
+from .serializers import ProjectSerializer, TestCaseSerializer, TestSuiteSerializer, RequirementSerializer, RoleSerializer, TestDataSerializer, BulkTestStepSerializer
 from django.contrib.sites.shortcuts import get_current_site
 import uuid
 import secrets
@@ -299,6 +300,45 @@ class ProjectViewSet(viewsets.ModelViewSet):
             raise ValidationError("Project does not exist or is not linked to the user.")
 
 
+class TestDataView(APIView):
+    """
+    API View to handle GET and POST requests for TestData.
+    Each project can have only one URL.
+    """
+
+    def get(self, request, project_id):
+        """
+        Handles GET requests to retrieve the TestData entry for a specific project.
+        :param project_id: ID of the project to retrieve TestData for.
+        """
+        try:
+            test_data = TestData.objects.get(project_id=project_id)
+            serializer = TestDataSerializer(test_data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except TestData.DoesNotExist:
+            return Response({"error": "No TestData found for the given project ID."}, status=status.HTTP_404_NOT_FOUND)
+
+    def post(self, request, project_id):
+        """
+        Handles POST requests to create or update the TestData entry for a specific project.
+        :param project_id: ID of the project to create/update TestData for.
+        :param url: URL to associate with the project.
+        """
+        try:
+            project = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Ensure only one TestData entry per project
+        test_data, created = TestData.objects.get_or_create(project=project)
+
+        # Update or set the URL
+        serializer = TestDataSerializer(test_data, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+            return Response(serializer.data, status=status_code)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TestCaseViewSet(viewsets.ModelViewSet):
@@ -311,7 +351,7 @@ class TestCaseViewSet(viewsets.ModelViewSet):
         if not project_id:
             raise ValidationError("Project ID is required in query parameters.")
 
-        return TestCase.objects.filter(project__id=project_id)
+        return TestCase.objects.filter(project__id=project_id).prefetch_related('steps')
 
     def perform_create(self, serializer):
         user_id = self.request.user.id
@@ -335,6 +375,39 @@ class TestCaseViewSet(viewsets.ModelViewSet):
         except Project.DoesNotExist:
             raise ValidationError("Project not found or does not belong to the user.")
 
+
+class TestStepViewSet(viewsets.ModelViewSet):
+    serializer_class = BulkTestStepSerializer
+
+    def get_queryset(self):
+        testcase_id = self.request.query_params.get('testcase_id')
+        if not testcase_id:
+            raise ValidationError("Testcase ID is required in query parameters.")
+        return TestStep.objects.filter(testcase_id=testcase_id)
+
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create(self, request, *args, **kwargs):
+        """
+        Create multiple test steps in one request.
+        Expected format:
+        {
+            "steps": [
+                {"testcase": 1, "step_number": 1, "step_description": "Step 1 description"},
+                {"testcase": 1, "step_number": 2, "step_description": "Step 2 description"}
+            ]
+        }
+        """
+        steps_data = request.data.get('steps', [])
+
+        if not steps_data:
+            return Response({"error": "Steps data is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate and create steps
+        serializer = BulkTestStepSerializer(data=steps_data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TestSuiteViewSet(viewsets.ModelViewSet):
     serializer_class = TestSuiteSerializer

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import User, Project, TestCase, TestSuite,Requirement,Role,ProjectInvitation,ProjectMember
-from .models import TestCaseType, TestCasePriority, RequirementType
+from .models import TestCaseType, TestCasePriority, RequirementType, TestData,TestStep
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,6 +12,11 @@ class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['id', 'name', 'description']
+
+class TestDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestData
+        fields = ['id', 'project', 'url']
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,10 +34,17 @@ class ProjectMemberSerializer(serializers.ModelSerializer):
         model = ProjectMember
         fields = ['id', 'project', 'user', 'added_at']
 
+class BulkTestStepSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestStep
+        fields = ['id', 'testcase', 'step_number', 'step_description']
+
 class TestCaseSerializer(serializers.ModelSerializer):
+    steps = BulkTestStepSerializer(many=True, read_only=True)
+
     class Meta:
         model = TestCase
-        fields = ['id', 'name', 'project_id', 'testcase_type', 'testcase_priority']
+        fields = ['id', 'name', 'project_id', 'testcase_type', 'testcase_priority','steps']
 
 class TestSuiteSerializer(serializers.ModelSerializer):
     labels = serializers.ListField(
