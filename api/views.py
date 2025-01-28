@@ -392,12 +392,17 @@ class TestCaseViewSet(viewsets.ModelViewSet):
 
 class TestStepViewSet(viewsets.ModelViewSet):
     serializer_class = BulkTestStepSerializer
+    queryset = TestStep.objects.all()
 
     def get_queryset(self):
-        testcase_id = self.request.query_params.get('testcase_id')
-        if not testcase_id:
-            raise ValidationError("Testcase ID is required in query parameters.")
-        return TestStep.objects.filter(testcase_id=testcase_id)
+        # Check for testcase_id only in GET requests
+        if self.request.method == 'GET':
+            testcase_id = self.request.query_params.get('testcase_id')
+            if not testcase_id:
+                raise ValidationError("Testcase ID is required in query parameters.")
+            return TestStep.objects.filter(testcase_id=testcase_id)
+        # For other methods (PUT, DELETE, POST), return all TestSteps
+        return TestStep.objects.all()
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request, *args, **kwargs):
@@ -412,16 +417,40 @@ class TestStepViewSet(viewsets.ModelViewSet):
         }
         """
         steps_data = request.data.get('steps', [])
-
         if not steps_data:
             return Response({"error": "Steps data is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Validate and create steps
         serializer = BulkTestStepSerializer(data=steps_data, many=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Update a test step (either part or whole).
+        """
+        try:
+            instance = self.get_object()  # Get the TestStep instance to update
+            serializer = self.get_serializer(instance, data=request.data, partial=True)  # Use partial update (PATCH)
+            
+            if serializer.is_valid():
+                serializer.save()  # Save the updated instance
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except TestStep.DoesNotExist:
+            return Response({"error": "TestStep not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Delete a test step.
+        """
+        try:
+            instance = self.get_object()  # Get the TestStep instance to delete
+            instance.delete()  # Delete the instance
+            return Response(status=status.HTTP_204_NO_CONTENT)  # No content as response
+        except TestStep.DoesNotExist:
+            return Response({"error": "TestStep not found."}, status=status.HTTP_404_NOT_FOUND)
 
 class TestSuiteViewSet(viewsets.ModelViewSet):
     serializer_class = TestSuiteSerializer
