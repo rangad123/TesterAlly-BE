@@ -246,12 +246,24 @@ class OrganizationProjectsView(APIView):
 
 class ProjectMembersView(APIView):
     def get(self, request, project_id):
-        # Fetch project members for the given project ID
         try:
+            # Fetch project members for the given project ID
             project_members = ProjectMember.objects.filter(project_id=project_id).select_related('user')
+            project_invitations = ProjectInvitation.objects.filter(project_id=project_id)  # Fetch all invitations for the project
             members_data = []
+
             for member in project_members:
                 user = member.user
+
+                # Filter invitation records related to this specific member
+                # Assuming there is a way to match members with invitations (e.g., by email, name, etc.)
+                invitation_status = "No Invitation Found"
+                for invitation in project_invitations:
+                    if invitation.recipient_email == user.email:  # Example match by email (adjust logic if needed)
+                        invitation_status = invitation.status
+                        break  # Stop looking once a match is found
+
+                # Append member data with invitation status
                 members_data.append({
                     "id": user.id,
                     "name": user.name,
@@ -259,10 +271,14 @@ class ProjectMembersView(APIView):
                     "phone": user.phone,
                     "country": user.country,
                     "added_at": member.added_at,
+                    "invitation_status": invitation_status,  # Add specific status for this user
                 })
+
             return Response(members_data, status=status.HTTP_200_OK)
+
         except Project.DoesNotExist:
             return Response({"error": "Project not found."}, status=status.HTTP_404_NOT_FOUND)
+
 
 #User Main api for Frontend
 
