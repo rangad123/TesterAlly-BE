@@ -341,6 +341,19 @@ class TestDataView(APIView):
             return Response(serializer.data, status=status_code)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, project_id):
+        """
+        Handles DELETE requests to remove the TestData entry for a specific project.
+        :param project_id: ID of the project to delete TestData for.
+        """
+        try:
+            test_data = TestData.objects.get(project_id=project_id)
+            test_data.delete()
+            return Response({"message": "TestData deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        except TestData.DoesNotExist:
+            return Response({"error": "No TestData found for the given project ID."}, status=status.HTTP_404_NOT_FOUND)
+
+
 
 class TestCaseViewSet(viewsets.ModelViewSet):
     serializer_class = TestCaseSerializer
