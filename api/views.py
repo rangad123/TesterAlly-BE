@@ -653,6 +653,36 @@ class RequirementTypeViewSet(viewsets.ModelViewSet):
     queryset = RequirementType.objects.all()
     serializer_class = RequirementTypeSerializer
 
+
+class UserProjectDataView(APIView):
+    def get(self, request, user_id):
+        # Get all projects where the user is a member
+        project_memberships = ProjectMember.objects.filter(user_id=user_id)
+        project_ids = project_memberships.values_list('project_id', flat=True)
+
+        # Fetch all related projects
+        projects = Project.objects.filter(id__in=project_ids)
+        project_data = ProjectSerializer(projects, many=True).data
+
+        # Fetch all test cases related to these projects
+        test_cases = TestCase.objects.filter(project_id__in=project_ids)
+        test_case_data = TestCaseSerializer(test_cases, many=True).data
+
+        # Fetch all test suites related to these projects
+        test_suites = TestSuite.objects.filter(project_id__in=project_ids)
+        test_suite_data = TestSuiteSerializer(test_suites, many=True).data
+
+        # Fetch all requirements related to these projects
+        requirements = Requirement.objects.filter(project_id__in=project_ids)
+        requirement_data = RequirementSerializer(requirements, many=True).data
+
+        return Response({
+            "projects": project_data,
+            "test_cases": test_case_data,
+            "test_suites": test_suite_data,
+            "requirements": requirement_data
+        })
+        
 # Protected View for authenticated users
 class ProtectedView(APIView):
     permission_classes = [IsAuthenticated]
