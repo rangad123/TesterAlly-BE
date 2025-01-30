@@ -20,6 +20,8 @@ class User(models.Model):
     reset_token = models.CharField(max_length=100, blank=True, null=True)
     created_by = models.CharField(max_length=10, unique=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')  # Foreign key to Role
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -36,6 +38,8 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
     project_type = models.CharField(max_length=255)
     project_id = models.CharField(max_length=20, unique=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)  # Add created_at field
+    updated_at = models.DateTimeField(auto_now=True)  # Add updated_at field
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

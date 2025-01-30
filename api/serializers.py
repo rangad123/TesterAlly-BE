@@ -5,7 +5,7 @@ from .models import TestCaseType, TestCasePriority, RequirementType, TestData,Te
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'password', 'phone', 'country', 'created_by']
+        fields = ['id', 'name', 'email', 'password', 'phone', 'country', 'created_by', 'created_at', 'updated_at']
         extra_kwargs = {'password': {'write_only': True}}
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class TestDataSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
-        fields = ['id', 'project_id', 'name', 'description', 'project_type','user_id']
+        fields = ['id', 'project_id', 'name', 'description', 'project_type','user_id', 'created_at', 'updated_at']
 
 class ProjectInvitationSerializer(serializers.ModelSerializer):
     class Meta:

@@ -105,7 +105,9 @@ class LoginView(APIView):
                             "id":user.id,
                             "roleId":user.role_id,
                             "name": user.name,
-                            "email": user.email
+                            "email": user.email,
+                            "created_at": user.created_at,
+                            "updated_at": user.updated_at
                         }
                     },
                     status=status.HTTP_200_OK
