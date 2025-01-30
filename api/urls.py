@@ -4,7 +4,7 @@ from .views import ProjectViewSet,TestCaseViewSet,TestSuiteViewSet,RequirementVi
 from .views import RegisterView, LoginView, ForgotPasswordView, ResetPasswordView
 from .views import TestCaseTypeViewSet, TestCasePriorityViewSet, RequirementTypeViewSet, SendInvitationView, AcceptInvitationView, TestStepViewSet
 from .views import UserListView, ProjectListView, TestCaseListView, TestSuiteListView, RequirementListView, RoleView
-from .views import OrganizationView, OrganizationProjectsView, ProjectMembersView, TestDataView, UserProjectDataView
+from .views import OrganizationView, OrganizationProjectsView, ProjectMembersView, TestDataView, UserProjectDataView, OrganizationProjectDetailsView
 
 # Router for viewsets
 router = DefaultRouter()
@@ -35,6 +35,7 @@ urlpatterns = [
     path('projects/<int:project_id>/members/', ProjectMembersView.as_view(), name='project-members'),
     path('testdata/<int:project_id>/', TestDataView.as_view(), name='testdata'),
     path('user-projects/<int:user_id>/', UserProjectDataView.as_view(), name='user-project-data'),
+    path('organization/<int:organization_id>/projects/', OrganizationProjectDetailsView.as_view(), name='organization-projects'),
 
 ]
 

@@ -233,6 +233,41 @@ class OrganizationView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class OrganizationProjectDetailsView(APIView):
+    def get(self, request, organization_id):
+        try:
+            # Get the organization user
+            organization = User.objects.get(id=organization_id, role_id=2)
+            
+            # Get projects created by this organization
+            projects = Project.objects.filter(user=organization)
+
+            # Serialize project details along with related data
+            project_data = []
+            for project in projects:
+                project_info = ProjectSerializer(project).data
+                
+                # Fetch related data
+                project_info['test_cases'] = TestCaseSerializer(
+                    TestCase.objects.filter(project=project), many=True
+                ).data
+                project_info['test_suites'] = TestSuiteSerializer(
+                    TestSuite.objects.filter(project=project), many=True
+                ).data
+                project_info['requirements'] = RequirementSerializer(
+                    Requirement.objects.filter(project=project), many=True
+                ).data
+                project_info['project_members'] = ProjectMemberSerializer(
+                    ProjectMember.objects.filter(project=project), many=True
+                ).data
+                
+                project_data.append(project_info)
+
+            return Response({'organization': UserSerializer(organization).data, 'projects': project_data}, status=status.HTTP_200_OK)
+        
+        except User.DoesNotExist:
+            return Response({'error': 'Organization not found'}, status=status.HTTP_404_NOT_FOUND)
+
 class OrganizationProjectsView(APIView):
     def get(self, request, organization_id):
         # Fetch projects for the given organization (organization_id matches User.id)
